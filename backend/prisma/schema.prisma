@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+enum DeviceStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// User model for all user types
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  devices       Device[]
+  parentProfile ParentProfile?
+  teacherProfile TeacherProfile?
+  
+  @@map("users")
+}
+
+// Device verification tracking
+model Device {
+  id            String        @id @default(uuid())
+  userId        String
+  deviceId      String
+  deviceName    String?
+  status        DeviceStatus  @default(PENDING)
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  createdAt     DateTime      @default(now())
+  
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, deviceId])
+  @@map("devices")
+}
+
+// Parent profile linked to user
+model ParentProfile {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  phone         String?
+  address       String?
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  students      Student[]
+  
+  @@map("parent_profiles")
+}
+
+// Teacher profile linked to user
+model TeacherProfile {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  phone         String?
+  subject       String?
+  
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes       Class[]
+  
+  @@map("teacher_profiles")
+}
+
+// Student model
+model Student {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime
+  parentId      String
+  classId       String?
+  enrollmentDate DateTime @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  parent        ParentProfile @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  class         Class?        @relation(fields: [classId], references: [id])
+  feeBalance    FeeBalance?
+  transactions  FeeTransaction[]
+  refundRequests RefundRequest[]
+  grades        Grade[]
+  attendance    Attendance[]
+  
+  @@map("students")
+}
+
+// Class model
+model Class {
+  id            String    @id @default(uuid())
+  name          String    @unique
+  grade         String
+  section       String?
+  teacherId     String?
+  academicYear  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  teacher       TeacherProfile? @relation(fields: [teacherId], references: [id])
+  students      Student[]
+  timetables    Timetable[]
+  
+  @@map("classes")
+}
+
+// Fee balance per student
+model FeeBalance {
+  id            String    @id @default(uuid())
+  studentId     String    @unique
+  balance       Decimal   @default(0) @db.Decimal(10, 2)
+  updatedAt     DateTime  @updatedAt
+  
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@map("fee_balances")
+}
+
+// Fee transactions (deposits and withdrawals)
+model FeeTransaction {
+  id            String          @id @default(uuid())
+  studentId     String
+  type          TransactionType
+  amount        Decimal         @db.Decimal(10, 2)
+  description   String?
+  createdAt     DateTime        @default(now())
+  
+  student       Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@map("fee_transactions")
+}
+
+// Refund requests
+model RefundRequest {
+  id            String        @id @default(uuid())
+  studentId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  reason        String
+  status        RefundStatus  @default(PENDING)
+  requestedAt   DateTime      @default(now())
+  processedAt   DateTime?
+  processedBy   String?
+  adminNotes    String?
+  
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@map("refund_requests")
+}
+
+// Grades
+model Grade {
+  id            String    @id @default(uuid())
+  studentId     String
+  subject       String
+  score         Decimal   @db.Decimal(5, 2)
+  maxScore      Decimal   @db.Decimal(5, 2)
+  term          String
+  academicYear  String
+  remarks       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@map("grades")
+}
+
+// Attendance
+model Attendance {
+  id            String    @id @default(uuid())
+  studentId     String
+  date          DateTime
+  status        String
+  remarks       String?
+  createdAt     DateTime  @default(now())
+  
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, date])
+  @@map("attendance")
+}
+
+// Timetable
+model Timetable {
+  id            String    @id @default(uuid())
+  classId       String
+  dayOfWeek     String
+  startTime     String
+  endTime       String
+  subject       String
+  teacher       String?
+  room          String?
+  
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  @@map("timetables")
+}
