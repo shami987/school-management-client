@@ -103,6 +103,56 @@ async function main() {
     where: { userId: parent.id },
   });
 
+  // Create sample teacher
+  const teacherPassword = await hashPassword('Teacher@123');
+  const teacher = await prisma.user.upsert({
+    where: { email: 'teacher@school.com' },
+    update: {},
+    create: {
+      email: 'teacher@school.com',
+      password: teacherPassword,
+      firstName: 'Jane',
+      lastName: 'Smith',
+      role: 'TEACHER',
+      teacherProfile: {
+        create: {
+          phone: '+250788654321',
+          subject: 'Mathematics',
+        },
+      },
+    },
+  });
+  console.log('Sample teacher created:', teacher.email);
+
+  // Create verified device for teacher
+  await prisma.device.upsert({
+    where: {
+      userId_deviceId: {
+        userId: teacher.id,
+        deviceId: 'teacher-test-device'
+      }
+    },
+    update: {
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+    create: {
+      userId: teacher.id,
+      deviceId: 'teacher-test-device',
+      deviceName: 'Postman Testing',
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+  });
+  console.log('Teacher device created and verified');
+
+  // Get teacher profile
+  const teacherProfile = await prisma.teacherProfile.findUnique({
+    where: { userId: teacher.id },
+  });
+
   // Create sample class
   const class1 = await prisma.class.upsert({
     where: { name: 'Grade 5A' },
@@ -111,6 +161,7 @@ async function main() {
       name: 'Grade 5A',
       grade: '5',
       section: 'A',
+      teacherId: teacherProfile.id,
       academicYear: '2024',
     },
   });
@@ -206,10 +257,51 @@ async function main() {
   });
   console.log('Sample timetable created');
 
+  // Create sample student user
+  const studentPassword = await hashPassword('Student@123');
+  const studentUser = await prisma.user.upsert({
+    where: { email: 'alice.doe@student.com' },
+    update: {},
+    create: {
+      email: 'alice.doe@student.com',
+      password: studentPassword,
+      firstName: 'Alice',
+      lastName: 'Doe',
+      role: 'STUDENT',
+    },
+  });
+  console.log('Sample student user created:', studentUser.email);
+
+  // Create verified device for student
+  await prisma.device.upsert({
+    where: {
+      userId_deviceId: {
+        userId: studentUser.id,
+        deviceId: 'student-test-device'
+      }
+    },
+    update: {
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+    create: {
+      userId: studentUser.id,
+      deviceId: 'student-test-device',
+      deviceName: 'Postman Testing',
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+  });
+  console.log('Student device created and verified');
+
   console.log('Database seed completed successfully!');
   console.log('\nTest Credentials:');
   console.log('Admin: admin@school.com / Admin@123 / deviceId: admin-test-device');
   console.log('Parent: parent@test.com / Parent@123 / deviceId: parent-test-device');
+  console.log('Teacher: teacher@school.com / Teacher@123 / deviceId: teacher-test-device');
+  console.log('Student: alice.doe@student.com / Student@123 / deviceId: student-test-device');
 }
 
 main()
