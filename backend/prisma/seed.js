@@ -30,8 +30,19 @@ async function main() {
   console.log('Admin user created:', admin.email);
 
   // Create verified device for admin
-  await prisma.device.create({
-    data: {
+  await prisma.device.upsert({
+    where: {
+      userId_deviceId: {
+        userId: admin.id,
+        deviceId: 'admin-test-device'
+      }
+    },
+    update: {
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+    create: {
       userId: admin.id,
       deviceId: 'admin-test-device',
       deviceName: 'Postman Testing',
@@ -64,8 +75,19 @@ async function main() {
   console.log('Sample parent created:', parent.email);
 
   // Create verified device for parent
-  await prisma.device.create({
-    data: {
+  await prisma.device.upsert({
+    where: {
+      userId_deviceId: {
+        userId: parent.id,
+        deviceId: 'parent-test-device'
+      }
+    },
+    update: {
+      status: 'VERIFIED',
+      verifiedAt: new Date(),
+      verifiedBy: admin.id,
+    },
+    create: {
       userId: parent.id,
       deviceId: 'parent-test-device',
       deviceName: 'Postman Testing',

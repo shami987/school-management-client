@@ -16,20 +16,6 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
-    // Verify device is still verified
-    const device = await prisma.device.findUnique({
-      where: {
-        userId_deviceId: {
-          userId: decoded.userId,
-          deviceId: decoded.deviceId,
-        },
-      },
-    });
-
-    if (!device || device.status !== 'VERIFIED') {
-      return res.status(403).json({ error: 'Device not verified or access revoked' });
-    }
-
     // Attach user info to request
     req.user = decoded;
     next();

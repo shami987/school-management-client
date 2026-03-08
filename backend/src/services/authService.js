@@ -45,7 +45,7 @@ const registerParent = async (email, password, firstName, lastName, deviceId, de
 };
 
 // Login user
-const loginUser = async (email, password, deviceId) => {
+const loginUser = async (email, password) => {
   // Find user
   const user = await prisma.user.findUnique({
     where: { email },
@@ -61,30 +61,11 @@ const loginUser = async (email, password, deviceId) => {
     throw new Error('Invalid credentials');
   }
 
-  // Check device verification
-  const device = await prisma.device.findUnique({
-    where: {
-      userId_deviceId: {
-        userId: user.id,
-        deviceId,
-      },
-    },
-  });
-
-  if (!device) {
-    throw new Error('Device not registered');
-  }
-
-  if (device.status !== 'VERIFIED') {
-    throw new Error('Device not verified. Please wait for admin approval');
-  }
-
   // Generate JWT token
   const token = generateToken({
     userId: user.id,
     email: user.email,
     role: user.role,
-    deviceId,
   });
 
   return { user, token };
