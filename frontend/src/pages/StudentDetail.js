@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getStudent, getGrades, getAttendance, getTimetable } from '../services/studentService';
 import { getBalance, getTransactions, deposit, requestRefund } from '../services/feeService';
@@ -21,11 +21,7 @@ const StudentDetail = () => {
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [studentId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [studentData, balanceData, transData, gradesData, attData, timeData] = await Promise.all([
         getStudent(studentId),
@@ -46,7 +42,11 @@ const StudentDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDeposit = async (e) => {
     e.preventDefault();

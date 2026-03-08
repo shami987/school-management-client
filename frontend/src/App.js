@@ -6,6 +6,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import StudentDetail from './pages/StudentDetail';
+import ClassManagement from './pages/ClassManagement';
+import StudentGrades from './pages/StudentGrades';
+import StudentAttendance from './pages/StudentAttendance';
+import StudentTimetable from './pages/StudentTimetable';
 
 function App() {
   return (
@@ -28,6 +32,38 @@ function App() {
             element={
               <PrivateRoute>
                 <StudentDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/class/:classId"
+            element={
+              <PrivateRoute>
+                <ClassManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/my-grades"
+            element={
+              <PrivateRoute>
+                <StudentGrades />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/my-attendance"
+            element={
+              <PrivateRoute>
+                <StudentAttendance />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/my-timetable"
+            element={
+              <PrivateRoute>
+                <StudentTimetable />
               </PrivateRoute>
             }
           />
