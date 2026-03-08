@@ -9,6 +9,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    deviceId: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const data = await login(formData.email, formData.password);
+      const data = await login(formData.email, formData.password, formData.deviceId);
       setAuthUser(data.user);
       navigate('/dashboard');
     } catch (err) {
@@ -71,6 +72,21 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 text-sm font-semibold mb-2">
+              Device ID
+            </label>
+            <input
+              type="text"
+              name="deviceId"
+              value={formData.deviceId}
+              onChange={handleChange}
+              required
+              placeholder="Enter device ID"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

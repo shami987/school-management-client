@@ -40,12 +40,13 @@ export const register = async (data) => {
   return response.data;
 };
 
-export const login = async (email, password) => {
-  const deviceId = getDeviceId();
+export const login = async (email, password, deviceId) => {
+  // Use provided deviceId or generate one
+  const finalDeviceId = deviceId || getDeviceId();
   const response = await api.post('/auth/login', {
     email,
     password,
-    deviceId,
+    deviceId: finalDeviceId,
   });
   
   if (response.data.token) {
